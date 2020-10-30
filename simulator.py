@@ -48,35 +48,10 @@ def get_pokemon_data(n):
 
 def import_team(teamfile):
     fullteam = []
-    with open(teamfile, 'r') as team:
-        end = False
-        number_of_pokemon = 0
-        while not end:
-            d = {}
-            number_of_pokemon += 1
-            while True:
-                line = team.readline()
-                if line == '\n':  # End of current pokemon
-                    break
-                elif line == '':  # End of file
-                    end = True
-                    break
-                (key, val) = line.split(':')
-                val = val[1:-1]  # Remove newline info
-                if key != 'nature':  # Convert from string unless Nature value
-                    val = ast.literal_eval(val)
-                d[key] = val
-
-            # Default values: will fill in bulbasaur/lvl1/no ivs/no evs/hardy nature if any are missing
-            for (key, val) in default_values:
-                if key not in d:
-                    d[key] = val
-
-            d['mod'] = [0, 0, 0, 0, 0, 0, 0]
-            d['status'] = ''
-            fullteam.append(d)
-            if number_of_pokemon == 6:
-                break
+    with open(teamfile) as team_file:
+        team = json.load(team_file)
+        for kwargs in team:
+            fullteam.append(Pokemon(**kwargs))
     return fullteam
 
 
@@ -118,7 +93,7 @@ def fullstats(pkmn):
 
 def import_stats(pkmn):
     for data in ['name', 'type1', 'type2']:
-        pkmn[data] = dict(get_pokemon_data(pkmn.id))[data]
+        pkmn.data = dict(get_pokemon_data(pkmn.pokedex_number))[data]
     pkmn['stats'] = fullstats(pkmn)
 
 
@@ -158,29 +133,36 @@ def full_team_import(team_file):
 
 # Setup: Importing teams, pokemon data etc
 
+
 class Player:
-    def __init__(self, name, team):
-        self.name = name
-        self.team = team
     win = False
     action = ''
 
-class Pokemon:
-    __kwargs_list = ['id', 'level', 'ivs', 'evs', 'nature', 'moves']
-    def __init__(self, **kwargs):
-    # pkmn = Pokemon(**data)
-        [self.__setattr__(key, kwargs.get(key)) for key in self.__kwargs_list]
-        if 0 < n < 722:
-            with open('data/pokemondata.csv', 'r') as csv_file:
-                csv_reader = csv.DictReader(csv_file)
-                for j in range(n - 1):
-                    next(csv_reader)
-                return next(csv_reader)
-        else:
-            return 'Invalid ID!'
+    def __init__(self, name, team):
+        self.name = name
+        self.team = team
 
-p1 = Player('Steve', full_team_import("team1.txt"))
-p2 = Player('Alex', full_team_import("team2.txt"))
+    def __repr__(self):
+        return self.name
+
+
+class Pokemon:
+    __kwargs_list = ['pokedex_number', 'level', 'ivs', 'evs', 'nature', 'moves']
+
+    def __init__(self, **kwargs):
+        [self.__setattr__(key, kwargs.get(key)) for key in self.__kwargs_list]
+        assert 0 < self.pokedex_number < 722, "Pokedex number out of range"
+        with open('data/pokemondata.csv', 'r') as csv_file:
+            csv_reader = csv.DictReader(csv_file)
+            for _ in range(self.pokedex_number - 1):
+                next(csv_reader)
+            return next(csv_reader)
+
+    def __repr__(self):
+        return self.name
+
+p1 = Player('Steve', full_team_import("team1.json"))
+p2 = Player('Alex', full_team_import("team2.json"))
 
 print(p1.team, p1.win)
 
