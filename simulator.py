@@ -1,6 +1,7 @@
 import csv
 import ast
 import random
+import json
 from math import prod
 
 stat_ids = {"Hp": 0, "Atk": 1, "Def": 2, "SpA": 3, "SpD": 4, "Spe": 5, "Crit": 6}
@@ -37,14 +38,12 @@ default_values = [('pokedex_number', 1), ('level', 1), ('iv', [0, 0, 0, 0, 0, 0]
 
 
 def get_pokemon_data(n):
-    if 0 < n < 722:
-        with open('data/pokemondata.csv', 'r') as csv_file:
-            csv_reader = csv.DictReader(csv_file)
-            for j in range(n - 1):
-                next(csv_reader)
-            return next(csv_reader)
-    else:
-        return 'Invalid ID!'
+    assert 0 < n < 722, "Pokemon ID out of range"
+    with open('data/pokemondata.csv', 'r') as csv_file:
+        csv_reader = csv.DictReader(csv_file)
+        for j in range(n - 1):
+            next(csv_reader)
+        return next(csv_reader)
 
 
 def import_team(teamfile):
@@ -88,29 +87,6 @@ def list_team(player):
     return output[:-2]
 
 
-def statcalc(pkmn, stat):
-    """Returns the specified stat"""
-    data = dict(get_pokemon_data(pkmn["pokedex_number"]))
-    stat_id = stat_ids[stat]  # for identifying IVs/EVs
-    base = int(data[stat])
-    level = pkmn["level"]
-    iv = pkmn["iv"][stat_id]
-    ev = pkmn["ev"][stat_id]
-    nature_values = natures[pkmn["nature"]]
-    if stat == "Hp":
-        stat_val = int((2 * base + iv + int(ev / 4)) * level / 100) + level + 10
-    else:
-        raw_val = int((2 * base + iv + int(ev / 4)) * level / 100) + 5
-        if stat_id == nature_values[0]:
-            nat = 1.1
-        elif stat_id == nature_values[1]:
-            nat = 0.9
-        else:
-            nat = 1
-        stat_val = int(nat * raw_val)
-    return stat_val
-
-
 def fullstats(pkmn):
     """Returns the full stats list"""
     data = dict(get_pokemon_data(pkmn["pokedex_number"]))
@@ -142,7 +118,7 @@ def fullstats(pkmn):
 
 def import_stats(pkmn):
     for data in ['name', 'type1', 'type2']:
-        pkmn[data] = dict(get_pokemon_data(pkmn["pokedex_number"]))[data]
+        pkmn[data] = dict(get_pokemon_data(pkmn.id))[data]
     pkmn['stats'] = fullstats(pkmn)
 
 
@@ -189,23 +165,27 @@ class Player:
     win = False
     action = ''
 
+class Pokemon:
+    __kwargs_list = ['id', 'level', 'ivs', 'evs', 'nature', 'moves']
+    def __init__(self, **kwargs):
+    # pkmn = Pokemon(**data)
+        [self.__setattr__(key, kwargs.get(key)) for key in self.__kwargs_list]
+        if 0 < n < 722:
+            with open('data/pokemondata.csv', 'r') as csv_file:
+                csv_reader = csv.DictReader(csv_file)
+                for j in range(n - 1):
+                    next(csv_reader)
+                return next(csv_reader)
+        else:
+            return 'Invalid ID!'
+
 p1 = Player('Steve', full_team_import("team1.txt"))
 p2 = Player('Alex', full_team_import("team2.txt"))
-
-# [{'pokedex_number': 6, 'level': 100, 'iv': [20, 3, 12, 31, 2, 30], 'ev': [4, 0, 0, 252, 0, 252], 'nature': 'Modest', 'moves': ['Pound', 'Flamethrower'], 'mod': [0, 0, 0, 0, 0, 0, 0], 'status': ''},
-#  {'pokedex_number': 1, 'level': 1, 'iv': [20, 3, 12, 31, 2, 30], 'ev': [4, 0, 0, 252, 0, 252], 'nature': 'Docile', 'moves': ['Razor Leaf'], 'mod': [0, 0, 0, 0, 0, 0, 0], 'status': ''},
-#  {'pokedex_number': 25, 'level': 100, 'iv': [20, 3, 12, 31, 2, 30], 'ev': [4, 0, 0, 252, 0, 252], 'nature': 'Modest', 'moves': ['Thunderbolt'], 'mod': [0, 0, 0, 0, 0, 0, 0], 'status': ''}]
 
 print(p1.team, p1.win)
 
 for player in [p1, p2]:
     print(list_team(player))
-
-# print(p1.name + ": " + dict(get_pokemon_data(team1[0]["pokedex_number"]))["name"])
-# print(team1[0]['stats'])
-#
-# print(p2.name + ": " + dict(get_pokemon_data(team2[0]["pokedex_number"]))["name"])
-# print(team2[0]['stats'])
 
 
 # Defining battle functions
@@ -304,7 +284,7 @@ def damage(attacker, defender, move, weather=None, other=None, critboost=0):
         battle_modifiers['Critical'] = 1.5
 
     # STAB
-    if move['type'] == attacker['type1'] or move['type'] == defender['type2']:
+    if move['type'] in [attacker['type1'], attacker['type2']]:
         battle_modifiers['STAB'] = 1.5
 
     # Type
