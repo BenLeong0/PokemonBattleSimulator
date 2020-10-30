@@ -190,7 +190,7 @@ class Player:
     action = ''
 
 p1 = Player('Steve', full_team_import("team1.txt"))
-p2 = Player('Steve', full_team_import("team1.txt"))
+p2 = Player('Alex', full_team_import("team2.txt"))
 
 # [{'pokedex_number': 6, 'level': 100, 'iv': [20, 3, 12, 31, 2, 30], 'ev': [4, 0, 0, 252, 0, 252], 'nature': 'Modest', 'moves': ['Pound', 'Flamethrower'], 'mod': [0, 0, 0, 0, 0, 0, 0], 'status': ''},
 #  {'pokedex_number': 1, 'level': 1, 'iv': [20, 3, 12, 31, 2, 30], 'ev': [4, 0, 0, 252, 0, 252], 'nature': 'Docile', 'moves': ['Razor Leaf'], 'mod': [0, 0, 0, 0, 0, 0, 0], 'status': ''},
@@ -446,6 +446,7 @@ else:
     print('uhoh, who won??')
 
 print('======================')
+input()
 
 # Crit: player.team[team_id]['mod'][6]
 
