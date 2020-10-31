@@ -39,7 +39,7 @@ class Player:
         self.team = []
         with open(team_path) as team_file:
             team_data = json.load(team_file)
-            for pkmn_kwargs in team_data:
+            for pkmn_kwargs in team_data[:6]:
                 self.team.append(Pokemon(**pkmn_kwargs))
 
     def __repr__(self):
