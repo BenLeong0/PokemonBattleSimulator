@@ -12,7 +12,7 @@
     "level": 1,
     "ivs": [20, 3, 12, 31, 2, 30],
     "evs": [4, 0, 0, 252, 0, 252],
-    "nature": "Modest"
+    "nature": "Modest",
     "moves": ["Thunderbolt"]
   }
 ]
